@@ -138,16 +138,17 @@ curl -X POST http://localhost:8000/api/v1/images/convert \
 
 ```bash
 # Install with dev dependencies
-uv sync --all-extras
+uv sync --extra dev
 
 # Run linter
-uv run ruff check .
+uv run ruff check --fix
+uv run ruff format
 
 # Run tests
 uv run pytest
 
 # Run with coverage
-uv run pytest --cov=app --cov-report=html
+uv run pytest --cov=app --cov-report=term-missing --cov-report=html
 ```
 
 ## Docker

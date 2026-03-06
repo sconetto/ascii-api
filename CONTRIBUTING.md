@@ -29,7 +29,7 @@ Thank you for your interest in contributing to ASCII API!
 
 ```bash
 # Install dependencies
-uv sync --dev
+uv sync --extra dev
 
 # Set up pre-commit hooks
 pre-commit install
