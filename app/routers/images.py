@@ -4,73 +4,21 @@ Provides the POST /api/v1/images/convert endpoint which accepts an image file
 and returns its ASCII art representation.
 """
 
-import time
-from collections import defaultdict
-from threading import Lock
-
 from fastapi import APIRouter, File, Form, Request, UploadFile
 
 from app.auth import AuthDep
-from app.config import Settings
 from app.dependencies import SettingsDep
 from app.exceptions import (
     DecompressionBombError,
     FileTooLargeError,
     InvalidImageError,
-    RateLimitError,
 )
 from app.schemas.image import ImageConvertResponse
 from app.services.ascii_converter import convert as ascii_convert
+from app.services.rate_limiter import get_rate_limiter
 from app.services.validators import validate_file_type
 
 router = APIRouter(prefix="/api/v1/images", tags=["images"])
-
-
-class InMemoryRateLimiter:
-    """Simple in-memory rate limiter per IP address."""
-
-    def __init__(self, requests_per_minute: int = 10):  # noqa: ANN204
-        self.requests_per_minute = requests_per_minute
-        self.requests: dict[str, list[float]] = defaultdict(list)
-        self._lock = Lock()
-
-    def _get_client_ip(self, request: Request) -> str:
-        """Extract client IP from request."""
-        forwarded = request.headers.get("X-Forwarded-For")
-        if forwarded:
-            return forwarded.split(",")[0].strip()
-        return request.client.host if request.client else "unknown"
-
-    def check(self, request: Request) -> None:
-        """Check if request is within rate limit. Raises RateLimitError if not."""
-        client_ip = self._get_client_ip(request)
-        now = time.time()
-        window_start = now - 60  # 1 minute window
-
-        with self._lock:
-            # Clean old requests
-            self.requests[client_ip] = [
-                ts for ts in self.requests[client_ip] if ts > window_start
-            ]
-
-            # Check limit
-            if len(self.requests[client_ip]) >= self.requests_per_minute:
-                raise RateLimitError()
-
-            # Record this request
-            self.requests[client_ip].append(now)
-
-
-# Global rate limiter instance (created on first request to get settings)
-_rate_limiter: InMemoryRateLimiter | None = None
-
-
-def get_rate_limiter(settings: Settings) -> InMemoryRateLimiter:
-    """Get or create the rate limiter instance."""
-    global _rate_limiter
-    if _rate_limiter is None:
-        _rate_limiter = InMemoryRateLimiter(requests_per_minute=settings.rate_limit)
-    return _rate_limiter
 
 
 @router.post(
@@ -110,7 +58,7 @@ async def convert_image(
 
     # Read file content (with size limit enforcement)
     max_size = settings.max_file_size
-    chunks = []
+    chunks: list[bytes] = []
     total_size = 0
     chunk_size = 1024 * 1024  # 1MB chunks
 
