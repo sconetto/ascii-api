@@ -10,8 +10,7 @@ from io import BytesIO
 from PIL import Image
 
 from app.exceptions import DecompressionBombError, InvalidImageError
-
-ASCII_CHARS = " `.-^',:;Il!i><~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#%@$"
+from app.utils.constants import ASCII_CHARS
 
 
 def load_image(data: bytes) -> Image.Image:
@@ -59,7 +58,9 @@ def resize_image(image: Image.Image, width: int, height_factor: float) -> Image.
     """
     original_width, original_height = image.size
     new_height = int(width * (original_height / original_width) * height_factor)
-    return image.resize((width, new_height), Image.Resampling.LANCZOS)
+    return image.resize(  # pyright: ignore[reportUnknownMemberType]
+        (width, new_height), resample=Image.Resampling.LANCZOS
+    )
 
 
 def convert_to_grayscale(image: Image.Image) -> Image.Image:
@@ -91,11 +92,16 @@ def map_pixels_to_ascii(image: Image.Image) -> str:
     width = image.width
     pixels = list(image.get_flattened_data())  # type: ignore[arg-type]
 
-    ascii_rows = []
+    ascii_rows: list[str] = []
     chars_len = len(ASCII_CHARS) - 1
     for i in range(0, len(pixels), width):
         row = pixels[i : i + width]
-        ascii_row = "".join(ASCII_CHARS[(pixel * chars_len) // 255] for pixel in row)
+        ascii_row = "".join(
+            ASCII_CHARS[
+                int(pixel) * chars_len // 255  # pyright: ignore[reportArgumentType]
+            ]
+            for pixel in row
+        )
         ascii_rows.append(ascii_row)
 
     return "\n".join(ascii_rows)
