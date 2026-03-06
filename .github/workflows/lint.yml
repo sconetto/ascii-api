@@ -8,6 +8,7 @@ on:
 
 jobs:
   lint:
+    name: Run checks for static standards
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -19,7 +20,7 @@ jobs:
         run: uv python install 3.14
 
       - name: Install dependencies
-        run: uv sync --dev
+        run: uv sync --extra dev
 
       - name: Run ruff
         run: uv run ruff check
