@@ -89,7 +89,7 @@ def map_pixels_to_ascii(image: Image.Image) -> str:
         ASCII art string with newlines between rows.
     """
     width = image.width
-    pixels = list(image.getdata())  # type: ignore[arg-type]
+    pixels = list(image.get_flattened_data())  # type: ignore[arg-type]
 
     ascii_rows = []
     chars_len = len(ASCII_CHARS) - 1

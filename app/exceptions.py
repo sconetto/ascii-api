@@ -30,7 +30,7 @@ class AsciiAPIError(Exception):
 class FileTooLargeError(AsciiAPIError):
     """Raised when the uploaded file exceeds the size limit."""
 
-    status_code = status.HTTP_413_REQUEST_ENTITY_TOO_LARGE
+    status_code = status.HTTP_413_CONTENT_TOO_LARGE
     detail = "File size exceeds the maximum allowed limit."
 
 
@@ -104,7 +104,7 @@ async def validation_error_handler(
     content = error.model_dump()
     content["errors"] = errors
     return JSONResponse(
-        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
         content=content,
     )
 
