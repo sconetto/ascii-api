@@ -2,7 +2,7 @@
 
 [![Python 3.14](https://img.shields.io/badge/python-3.14+-blue.svg)](https://www.python.org/downloads/release/python-3140/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Tests](https://github.com/sconetto/ascii-api/actions/workflows/test.yml/badge.svg)](https://github.com/sconetto/ascii-api/actions/workflows/test.yml)
+[![Tests](https://github.com/sconetto/ascii-api/actions/workflows/unit-test.yml/badge.svg)](https://github.com/sconetto/ascii-api/actions/workflows/unit-test.yml)
 [![Coverage](https://codecov.io/gh/sconetto/ascii-api/branch/main/graph/badge.svg)](https://codecov.io/gh/sconetto/ascii-api)
 
 A FastAPI REST API service for converting images to ASCII art.
