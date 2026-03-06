@@ -1,3 +1,9 @@
+"""Middleware for request processing.
+
+Includes request logging middleware that adds correlation IDs and logs
+request details for debugging and tracing.
+"""
+
 import uuid
 from collections.abc import Callable
 

@@ -1,3 +1,9 @@
+"""Prometheus metrics for monitoring application behavior.
+
+Provides metrics for HTTP requests, request duration, and image conversion counts.
+These metrics are exposed via the /metrics endpoint for Prometheus scraping.
+"""
+
 from collections.abc import Callable
 from time import perf_counter
 
