@@ -4,11 +4,16 @@ Provides metrics for HTTP requests, request duration, and image conversion count
 These metrics are exposed via the /metrics endpoint for Prometheus scraping.
 """
 
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from time import perf_counter
 
 from fastapi import FastAPI, Request, Response
-from prometheus_client import Counter, Gauge, Histogram, make_asgi_app
+from prometheus_client import (
+    Counter,
+    Gauge,
+    Histogram,
+    make_asgi_app,  # pyright: ignore[reportUnknownVariableType]
+)
 
 http_requests_total = Counter(
     "http_requests_total",
@@ -51,8 +56,11 @@ def track_request_duration(request: Request, response: Response) -> None:
 
 
 def setup_metrics(app: FastAPI) -> None:
-    @app.middleware("http")
-    async def metrics_middleware(request: Request, call_next: Callable) -> Response:
+    @app.middleware("http")  # type: ignore[misc]
+    async def metrics_middleware(  # type: ignore[unused-ignore]
+        request: Request,
+        call_next: Callable[[Request], Awaitable[Response]],
+    ) -> Response:
         start = perf_counter()
         response = await call_next(request)
         request.state.duration = perf_counter() - start
@@ -62,5 +70,6 @@ def setup_metrics(app: FastAPI) -> None:
 
         return response
 
-    metrics_app = make_asgi_app()
-    app.mount("/metrics", metrics_app)
+    # Create and mount the Prometheus metrics ASGI app
+    metrics_app = make_asgi_app()  # type: ignore[no-untyped-call]
+    app.mount("/metrics", metrics_app)  # type: ignore[arg-type]

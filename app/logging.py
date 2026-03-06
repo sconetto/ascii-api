@@ -4,15 +4,19 @@ Configures logging for both development (console) and production (JSON for Loki)
 """
 
 import logging
+from typing import TYPE_CHECKING, Any
 
 import structlog
 from structlog.types import EventDict
 
 from app.config import Settings
 
+if TYPE_CHECKING:
+    from logging import Logger as StdlibLogger
+
 
 def add_log_level(
-    logger: structlog.stdlib.Logger, method_name: int, event_dict: EventDict
+    logger: StdlibLogger, method_name: int, event_dict: EventDict
 ) -> EventDict:
     """Add the log level to the event dict."""
     event_dict["level"] = logging.getLevelName(method_name)
@@ -32,7 +36,7 @@ def configure_logging(settings: Settings) -> None:
     In production (LOG_JSON_FORMAT=true): uses JSONRenderer
     for Loki compatibility.
     """
-    processors = [
+    processors: list[Any] = [
         structlog.contextvars.merge_contextvars,
         structlog.stdlib.add_logger_name,
         add_log_level,
@@ -77,5 +81,8 @@ def get_logger(name: str | None = None) -> structlog.stdlib.BoundLogger:
         frame = inspect.currentframe()
         if frame is not None:
             caller_frame = frame.f_back
-            name = caller_frame.f_globals.get("__name__", "ascii-api")
+            if caller_frame is not None:
+                name = caller_frame.f_globals.get("__name__", "ascii-api")
+            else:
+                name = "ascii-api"
     return structlog.get_logger(name)
